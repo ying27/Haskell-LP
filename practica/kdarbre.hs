@@ -19,6 +19,16 @@ exampleSet1 =
       i = Node (Point3d (3.0,5.1,0.0)) [2] [Empty,Empty]
     in Node (Point3d (3.0,-1.0,2.1)) [1,3] [i,h,g,f]
 
+testbuild :: [(Point3d,[Int])]
+testbuild =
+  let a = [(Point3d (3.0,-1.0,2.1),[1,3]), (Point3d (3.5,2.8,3.1),[1,2]), (Point3d (3.5,0.0,2.1),[3])]
+      b = [(Point3d (3.0,-1.7,3.1),[1,2,3]), (Point3d (3.0,5.1,0.0),[2]), (Point3d (1.5,8.0,1.5),[1])]
+      c = [(Point3d (3.3,2.8,2.5),[3]), (Point3d (4.0,5.1,3.8),[2]), (Point3d (3.1,3.8,4.8),[1,3]), (Point3d (1.8,1.1,-2.0),[1,2])]
+    in a++b++c
+
+testbuild1 :: [(Point3d,[Int])]
+testbuild1 = [(Point3d (3.0,-1.0,2.1),[1,3]), (Point3d (3.5,2.8,3.1),[1,2]), (Point3d (3.5,0.0,2.1),[3])]
+
 -------------------------------------------------------------------------------------------
 
 class Point p where
@@ -40,8 +50,8 @@ instance Point Point3d where
   dim k = 3
 
   child _ _ [] = 0;
-  child q@(Point3d (a,b,c)) w@(Point3d (d,e,f)) (x:xs)
-    | (sel x q) > (sel x w) = 2^(x-1)+child q w xs
+  child q@(Point3d (a,b,c)) w@(Point3d (d,e,f)) l@(x:xs)
+    | (sel x q) > (sel x w) = 2^((length l)-1) + child q w xs
     | otherwise  = child q w xs
 
   dist (Point3d (a,b,c)) (Point3d (d,e,f)) = sqrt ((d-a)^2 + (e-b)^2 + (f-c)^2)
@@ -83,9 +93,14 @@ instance (Show p) => Show (Kd2nTree p) where
 -------------------------------------------------------------------------------------------
 
 insert :: (Point punt) => Kd2nTree punt -> punt -> [Int] -> Kd2nTree punt
-insert Empty p comp = Node p comp (take (dim p) (iterate id Empty))
+insert Empty p comp = Node p comp (take (2^(length comp)) (iterate id Empty))
 --insert (Node a w list ) p comp = insert (list !! (child p a w)) p comp
 insert (Node a w list) p comp = Node a w (l++[nod]++(tail r))
-  where pos = (child p a w)-1
+  where pos = (child p a w)
         (l,r) = splitAt pos list
         nod = insert (head r) p comp
+
+build :: (Point punt) => [(punt,[Int])] -> Kd2nTree punt
+build list =  foldl (\a (p,comp) -> insert a p comp) Empty list
+
+--insert p (Point3d (3.5,2.8,3.1)) [1,2]
