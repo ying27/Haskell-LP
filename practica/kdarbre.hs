@@ -29,6 +29,16 @@ testbuild =
 testbuild1 :: [(Point3d,[Int])]
 testbuild1 = [(Point3d (3.0,-1.0,2.1),[1,3]), (Point3d (3.5,2.8,3.1),[1,2]), (Point3d (3.5,0.0,2.1),[3])]
 
+testbuildini :: [([Double],[Int])]
+testbuildini =
+  let a = [([3.0,-1.0,2.1],[1,3]), ([3.5,2.8,3.1],[1,2]), ([3.5,0.0,2.1],[3])]
+      b = [([3.0,-1.7,3.1],[1,2,3]), ([3.0,5.1,0.0],[2]), ([1.5,8.0,1.5],[1])]
+      c = [([3.3,2.8,2.5],[3]), ([4.0,5.1,3.8],[2]), ([3.1,3.8,4.8],[1,3]), ([1.8,1.1,-2.0],[1,2])]
+    in a++b++c
+
+testbuildini1 :: [([Double],[Int])]
+testbuildini1 = [([3.0,-1.0,2.1],[1,3]), ([3.5,2.8,3.1],[1,2]), ([3.5,0.0,2.1],[3])]
+
 -------------------------------------------------------------------------------------------
 
 class Point p where
@@ -92,6 +102,9 @@ instance (Show p) => Show (Kd2nTree p) where
 
 -------------------------------------------------------------------------------------------
 
+--insertIni :: (Point punt) => Kd2nTree punt -> ([Double],[Int]) -> Kd2nTree punt
+--insertIni a (p,comp) = insert a (list2Point p) comp
+
 insert :: (Point punt) => Kd2nTree punt -> punt -> [Int] -> Kd2nTree punt
 insert Empty p comp = Node p comp (take (2^(length comp)) (iterate id Empty))
 --insert (Node a w list ) p comp = insert (list !! (child p a w)) p comp
@@ -103,4 +116,5 @@ insert (Node a w list) p comp = Node a w (l++[nod]++(tail r))
 build :: (Point punt) => [(punt,[Int])] -> Kd2nTree punt
 build list =  foldl (\a (p,comp) -> insert a p comp) Empty list
 
---insert p (Point3d (3.5,2.8,3.1)) [1,2]
+buildIni :: (Point punt) => [([Double],[Int])] -> Kd2nTree punt
+buildIni list = foldl (\a (p,comp) -> insert a (list2Point p) comp) Empty list
