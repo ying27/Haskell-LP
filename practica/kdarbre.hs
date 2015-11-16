@@ -128,3 +128,21 @@ getDoubles p count = (getDoubles p (count-1))++[(sel count p)]
 get_all :: (Point p) => Kd2nTree p -> [([Double],[Int])]
 get_all Empty = []
 get_all (Node a comp xs) = (getDoubles a (dim a),comp) : foldr (\q b->(get_all q) ++ b) [] xs
+
+-------------------------------------------------------------------------------------------
+
+remove :: (Eq p, Point p) => Kd2nTree p -> p -> Kd2nTree p
+remove (Node a w list) p
+  | a /= p = Node a w (l++[nod]++(tail r))
+  | otherwise = buildIni (foldr (\q b->(get_all q) ++ b) [] list)
+  where pos = (child p a w)
+        (l,r) = splitAt pos list
+        nod = remove (head r) p
+
+-------------------------------------------------------------------------------------------
+
+contains :: (Eq p, Point p) => Kd2nTree p -> p -> Bool
+contains Empty _ = False
+contains (Node a w list) p
+  | a /= p = contains (list !! (child p a w)) p
+  | otherwise = True
