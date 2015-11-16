@@ -118,3 +118,13 @@ build list =  foldl (\a (p,comp) -> insert a p comp) Empty list
 
 buildIni :: (Point punt) => [([Double],[Int])] -> Kd2nTree punt
 buildIni list = foldl (\a (p,comp) -> insert a (list2Point p) comp) Empty list
+
+-------------------------------------------------------------------------------------------
+
+getDoubles :: (Point p) => p -> Int -> [Double]
+getDoubles p 1 = [sel 1 p]
+getDoubles p count = (getDoubles p (count-1))++[(sel count p)]
+
+get_all :: (Point p) => Kd2nTree p -> [([Double],[Int])]
+get_all Empty = []
+get_all (Node a comp xs) = (getDoubles a (dim a),comp) : foldr (\q b->(get_all q) ++ b) [] xs
