@@ -146,3 +146,23 @@ contains Empty _ = False
 contains (Node a w list) p
   | a /= p = contains (list !! (child p a w)) p
   | otherwise = True
+
+-------------------------------------------------------------------------------------------
+
+minp :: (Point p) => p -> p -> p -> p
+minp po pa pb
+  | (dist po pa) < (dist po pb) = pa
+  | otherwise = pb
+
+nearestFold :: (Point p) => Kd2nTree p -> p -> p -> p
+nearestFold Empty b orig = b
+nearestFold x@(Node a comp fills) b orig =  minp orig b (nearestAux x a orig)
+
+nearestAux :: (Point p) => Kd2nTree p -> p -> p -> p
+nearestAux Empty b orig = b
+nearestAux (Node a comp fills) pare orig = foldr (\x b -> nearestFold x b orig) a fills
+
+
+--(a -> b -> b) -> b -> [a] -> b
+nearest :: (Point p) => Kd2nTree p -> p -> p
+nearest x@(Node a comp fills) p = nearestAux x a p
