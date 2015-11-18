@@ -49,6 +49,8 @@ class Point p where
   child :: p -> p -> [Int] -> Int
   dist :: p -> p -> Double
   list2Point :: [Double] -> p
+  ptrans :: p -> [Double] -> p
+  pscale :: p -> Double -> p
 
 -------------------------------------------------------------------------------------------
 
@@ -69,6 +71,10 @@ instance Point Point3d where
   dist (Point3d (a,b,c)) (Point3d (d,e,f)) = sqrt ((d-a)^2 + (e-b)^2 + (f-c)^2)
 
   list2Point [a,b,c] = Point3d (a,b,c)
+
+  ptrans (Point3d (x,y,z)) [dx,dy,dz] = Point3d (x+dx,y+dy,z+dz)
+
+  pscale (Point3d (x,y,z)) n = Point3d (x*n,y*n,z*n)
 
 instance Show Point3d where
   show (Point3d (a,b,c)) = "("++(show a)++","++(show b)++","++(show c)++")"
@@ -182,3 +188,15 @@ allInterval (Node a comp list) p1 p2
   | otherwise = allInterval (list !! x) p1 p2
   where (x:xs) = minFills p1 p2 a di
         di = 2^(length comp)-1
+
+-------------------------------------------------------------------------------------------
+--foldr :: (a -> b -> b) -> b -> [a] -> b
+kdmap :: (p -> q) -> Kd2nTree p -> Kd2nTree q
+kdmap _ Empty = Empty
+kdmap f (Node a w list) = Node (f a) w (foldr (\x b -> (kdmap f x):b) [] list)
+
+translation :: (Point p) => [Double] -> Kd2nTree p -> Kd2nTree p
+translation ct x = kdmap (\x -> ptrans x ct) x
+
+scale :: (Point p) => Double -> Kd2nTree p -> Kd2nTree p
+scale n x = kdmap (\x -> pscale x n) x
