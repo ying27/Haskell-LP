@@ -39,6 +39,8 @@ testbuildini =
 testbuildini1 :: [([Double],[Int])]
 testbuildini1 = [([3.0,-1.0,2.1],[1,3]), ([3.5,2.8,3.1],[1,2]), ([3.5,0.0,2.1],[3])]
 
+tree = build testbuild
+
 -------------------------------------------------------------------------------------------
 
 class Point p where
@@ -163,3 +165,20 @@ nearest :: (Point p, Eq p) => Kd2nTree p -> p -> p
 nearest x@(Node a comp fills) p = foldr (\x b -> minp p b (nearest x p)) a (filter (\x -> x /= Empty) fills)
 
 -------------------------------------------------------------------------------------------
+
+minFills :: (Point p) => p -> p -> p -> Int -> [Int]
+minFills p1 p2 pc comps
+  | all (\(x,y,z) -> x <= y && y <= z) (zip3 pd1 pdc pd2) = [0..comps]
+  | all (\(x,y) -> x < y) (zip pdc pd1) = [0]
+  | otherwise = [comps]
+  where pd1 = point2Double p1 (dim p1)
+        pd2 = point2Double p2 (dim p2)
+        pdc = point2Double pc (dim pc)
+
+allInterval :: (Point p) => Kd2nTree p -> p -> p -> [p]
+allInterval Empty _ _ = []
+allInterval (Node a comp list) p1 p2
+  | xs /= [] = a : foldr (\q b -> (allInterval q p1 p2) ++ b) [] list
+  | otherwise = allInterval (list !! x) p1 p2
+  where (x:xs) = minFills p1 p2 a di
+        di = 2^(length comp)-1
