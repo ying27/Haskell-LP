@@ -154,11 +154,14 @@ minp po pa pb
   | (dist po pa) < (dist po pb) = pa
   | otherwise = pb
 
-
+{-
 nearestAux :: (Point p) => Kd2nTree p -> p -> p -> p
 nearestAux Empty aux orig = aux
 nearestAux (Node a comp fills) aux orig = foldr (\x b -> minp orig b (nearestAux x a orig)) a fills
 
-
 nearest :: (Point p) => Kd2nTree p -> p -> p
 nearest x@(Node a comp fills) p = nearestAux x a p
+-}
+
+nearest :: (Point p, Eq p) => Kd2nTree p -> p -> p
+nearest x@(Node a comp fills) p = foldr (\x b -> minp p b (nearest x p)) a (filter (\x -> x /= Empty) fills)
