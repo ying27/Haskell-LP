@@ -102,12 +102,8 @@ instance (Show p) => Show (Kd2nTree p) where
 
 -------------------------------------------------------------------------------------------
 
---insertIni :: (Point punt) => Kd2nTree punt -> ([Double],[Int]) -> Kd2nTree punt
---insertIni a (p,comp) = insert a (list2Point p) comp
-
 insert :: (Point punt) => Kd2nTree punt -> punt -> [Int] -> Kd2nTree punt
 insert Empty p comp = Node p comp (take (2^(length comp)) (iterate id Empty))
---insert (Node a w list ) p comp = insert (list !! (child p a w)) p comp
 insert (Node a w list) p comp = Node a w (l++[nod]++(tail r))
   where pos = (child p a w)
         (l,r) = splitAt pos list
@@ -133,11 +129,11 @@ get_all (Node a comp xs) = (point2Double a (dim a),comp) : foldr (\q b->(get_all
 
 remove :: (Eq p, Point p) => Kd2nTree p -> p -> Kd2nTree p
 remove (Node a w list) p
-  | a /= p = Node a w (l++[nod]++(tail r))
+  | a /= p = Node a w (l++[remove h p]++t)
   | otherwise = buildIni (foldr (\q b->(get_all q) ++ b) [] list)
   where pos = (child p a w)
         (l,r) = splitAt pos list
-        nod = remove (head r) p
+        ([h],t) = splitAt 1 r
 
 -------------------------------------------------------------------------------------------
 
@@ -165,3 +161,5 @@ nearest x@(Node a comp fills) p = nearestAux x a p
 
 nearest :: (Point p, Eq p) => Kd2nTree p -> p -> p
 nearest x@(Node a comp fills) p = foldr (\x b -> minp p b (nearest x p)) a (filter (\x -> x /= Empty) fills)
+
+-------------------------------------------------------------------------------------------
