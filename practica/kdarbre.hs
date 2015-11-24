@@ -26,8 +26,15 @@ testbuild =
       c = [(Point3d (3.3,2.8,2.5),[3]), (Point3d (4.0,5.1,3.8),[2]), (Point3d (3.1,3.8,4.8),[1,3]), (Point3d (1.8,1.1,-2.0),[1,2])]
     in a++b++c
 
+testeq :: [(Point3d,[Int])]
+testeq =
+  let a = [(Point3d (3.0,-1.0,2.1),[1,3]), (Point3d (3.5,2.8,3.1),[1,2]), (Point3d (3.5,0.0,2.1),[3])]
+      b = [(Point3d (3.0,-1.7,3.1),[1,2,3]), (Point3d (3.0,5.1,0.0),[2]), (Point3d (1.5,8.0,1.5),[1])]
+      c = [(Point3d (3.3,2.8,2.5),[3]), (Point3d (4.0,5.1,3.8),[2]), (Point3d (3.1,3.8,4.8),[1,3]), (Point3d (1.8,1.1,-2.0),[1,2])]
+    in b++a++c
+
 testbuild1 :: [(Point3d,[Int])]
-testbuild1 = [(Point3d (3.0,-1.0,2.1),[1,3]), (Point3d (3.5,2.8,3.1),[1,2]), (Point3d (3.5,0.0,2.1),[3])]
+testbuild1 = [(Point3d (3.0,-1.0,2.1),[1,3]), (Point3d (3.5,2.8,3.1),[1,2]), (Point3d (3.5,0.0,2.1),[3]), (Point3d (3.5,0.0,2.0),[3]),(Point3d (3.5,2.0,2.8),[1,2])]
 
 testbuildini :: [([Double],[Int])]
 testbuildini =
@@ -40,7 +47,7 @@ testbuildini1 :: [([Double],[Int])]
 testbuildini1 = [([3.0,-1.0,2.1],[1,3]), ([3.5,2.8,3.1],[1,2]), ([3.5,0.0,2.1],[3])]
 
 tree = build testbuild
-
+tree1 = build testbuild1
 -------------------------------------------------------------------------------------------
 
 class Point p where
@@ -83,11 +90,18 @@ instance Show Point3d where
 
 data Kd2nTree p = Node p [Int] [Kd2nTree p] | Empty
 
-instance Eq a => Eq (Kd2nTree a) where
+instance (Eq a, Point a) => Eq (Kd2nTree a) where
   Empty == Empty = True
   Empty == _     = False
   _     == Empty = False
-  (Node q w e) == (Node a s d) = q==a && w==s && e==d --TODO: Check if the comparision between list of custom data works
+  q == w = (containsAll q w) && (containsAll w q)
+  --(Node q w e) == (Node a s d) = q==a && w==s && e==d
+
+containsAll :: (Point p, Eq p) => Kd2nTree p -> Kd2nTree p -> Bool
+containsAll (Node q w e) x = foldr (\a b-> (containsAll a x) && b) (contains x q) (filter (\x -> x /= Empty) e)
+
+
+--foldr (a->b->b) -> b -> [a] -> b
 
 
 showFills :: (Show p) => String -> Int -> [Kd2nTree p] -> String
@@ -158,20 +172,10 @@ minp po pa pb
   | (dist po pa) < (dist po pb) = pa
   | otherwise = pb
 
-{-
-nearestAux :: (Point p) => Kd2nTree p -> p -> p -> p
-nearestAux Empty aux orig = aux
-nearestAux (Node a comp fills) aux orig = foldr (\x b -> minp orig b (nearestAux x a orig)) a fills
-
-nearest :: (Point p) => Kd2nTree p -> p -> p
-nearest x@(Node a comp fills) p = nearestAux x a p
--}
-
 nearest :: (Point p, Eq p) => Kd2nTree p -> p -> p
 nearest x@(Node a comp fills) p = foldr (\x b -> minp p b (nearest x p)) a (filter (\x -> x /= Empty) fills)
 
 -------------------------------------------------------------------------------------------
-
 {-
 minFills :: (Point p) => p -> p -> p -> Int -> [Int]
 minFills p1 p2 pc comps
@@ -199,7 +203,7 @@ allInterval (Node a comp list) p1 p2
 
 
 -------------------------------------------------------------------------------------------
---foldr :: (a -> b -> b) -> b -> [a] -> b
+
 kdmap :: (p -> q) -> Kd2nTree p -> Kd2nTree q
 kdmap _ Empty = Empty
 kdmap f (Node a w list) = Node (f a) w (foldr (\x b -> (kdmap f x):b) [] list)

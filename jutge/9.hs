@@ -32,22 +32,12 @@ isPrimer x = foldr (\a b -> (rem x a /= 0) && b) True (2:[3,5..(isqrt x)])
 primes :: [Integer]
 primes = 2:filter isPrimer (iterate (+2) 3)
 
---hammAux a b = ((q && a < 7) || not q) && b
---      where q = isPrimer a
+hammAux :: [Integer] -> [Integer] -> [Integer] -> [Integer]
+hammAux f@(x:xs) s@(y:ys) t@(z:zs) = [q]++hammAux xx yy zz
+  where q = min (min x y) z
+        xx = dropWhile (\o -> o <= q) f
+        yy = dropWhile (\o -> o <= q) s
+        zz = dropWhile (\o -> o <= q) t
 
 hammings :: [Integer]
---hammings = 1:2:3:4:5:6:filter (\x -> foldr (\a b -> not ((rem x a == 0) && (isPrimer a)) && b) True (x:[7,9..(div x 2)])) (iterate (+1) 7)
---hammings = 1:2:3:4:5:6:8:9:filter (\x -> not (any isPrimer ([t | t <- x:[7,9..(div x 2)], rem x t == 0]))) (iterate (+1) 10)
-hammings = 1:2:3:4:5:6:filter (\x -> foldr (\a b -> not ((mod x a == 0) && (isPrimer a)) && b) True (x:[7,9..(div x 2)])) (iterate (+1) 7)
-
-
-
---hammings = filter (\x -> all (\y -> y < 7 ) [z | z <- x:2:[3,5..(div x 2)], rem x z == 0 && isPrimer z] ) (iterate (+1) 1)
---hammings = 1:2:3:4:5:filter (\x -> null [z | z <- x:[7,9..(div x 2)], rem x z == 0 && isPrimer z])     (iterate (+1) 6)
---hammings = 1:2:3:4:5:6:filter (\x ->  not (isPrimer x) || hammAux x)  (iterate (+1) 7)
---foldr :: (a -> b -> b) -> b -> [a] -> b
---hammAux a b = ((q && a < 7) || not q) && b
---      where q = isPrime a
-
---hammings :: [Integer]
---hammings = filter (\x -> foldr hammAux True [z|z<-[1..x], mod x z == 0]) (iterate (+1) 1)
+hammings = 1:hammAux (scanl (*) 2 (iterate (+0) 2)) (scanl (*) 3 (iterate (+0) 3)) (scanl (*) 5 (iterate (+0) 5))
