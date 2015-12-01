@@ -2,11 +2,11 @@
 %%Title: kdarbre.hs
 %%For: YInghao Xu
 %%Creator: a2ps version 4.14
-%%CreationDate: Sun Nov 29 22:28:12 2015
+%%CreationDate: Tue Nov 24 11:20:00 2015
 %%BoundingBox: 24 24 571 818
 %%DocumentData: Clean7Bit
 %%Orientation: Landscape
-%%Pages: 3
+%%Pages: 4
 %%PageOrder: Ascend
 %%DocumentMedia: A4 595 842 0 () ()
 %%DocumentNeededResources: font Courier
@@ -755,6 +755,352 @@ llx lly 0 add translate
 /x0 x v get 3.360000 add sx cw mul add store
 /y0 y v get bfs  sub store
 x0 y0 moveto
+(exampleSet :: Kd2nTree Point3d) C n
+(exampleSet =) p n
+(  ) S
+(let) K
+( a = Node \(Point3d \(1.8,1.1,-2.0\)\) ) p
+([) K
+(1,2) p
+(]) K
+( ) p
+([) K
+(Empty) p
+(]) K n
+(      b = Node \(Point3d \(1.5,8.0,1.5\)\) ) p
+([) K
+(1) p
+(]) K
+( ) p
+([) K
+(Empty) p
+(]) K n
+(      c = Node \(Point3d \(3.3,2.8,2.5\)\) ) p
+([) K
+(3) p
+(]) K
+( ) p
+([) K
+(Empty) p
+(]) K n
+(      d = Node \(Point3d \(3.1,3.8,4.8\)\) ) p
+([) K
+(1,3) p
+(]) K
+( ) p
+([) K
+(Empty) p
+(]) K n
+(      e = Node \(Point3d \(4.0,5.1,3.8\)\) ) p
+([) K
+(2) p
+(]) K
+( ) p
+([) K
+(Empty) p
+(]) K n
+(      f = Node \(Point3d \(3.5,2.8,3.1\)\) ) p
+([) K
+(1,2) p
+(]) K
+( ) p
+([) K
+(c,d, Empty, e) p
+(]) K n
+(      g = Node \(Point3d \(3.5,0.0,2.1\)\) ) p
+([) K
+(3) p
+(]) K
+( ) p
+([) K
+(Empty) p
+(]) K n
+(      h = Node \(Point3d \(3.0,-1.7,3.1\)\) ) p
+([) K
+(1,2,3) p
+(]) K
+( ) p
+([) K
+(Empty) p
+(]) K n
+(      i = Node \(Point3d \(3.0,5.1,0.0\)\) ) p
+([) K
+(2) p
+(]) K
+( ) p
+([) K
+(a,b) p
+(]) K n
+(    ) p
+(in) K
+( Node \(Point3d \(3.0,-1.0,2.1\)\) ) p
+([) K
+(1,3) p
+(]) K
+( ) p
+([) K
+(i,h,g,f) p
+(]) K n
+() p n
+(exampleSet1 :: Kd2nTree Point3d) C n
+(exampleSet1 =) p n
+(  ) S
+(let) K
+( f = Node \(Point3d \(3.5,2.8,3.1\)\) ) p
+([) K
+(1,2) p
+(]) K
+( ) p
+([) K
+(Empty,Empty, Empty, Empty) p
+(]) K n
+(      g = Node \(Point3d \(3.5,0.0,2.1\)\) ) p
+([) K
+(3) p
+(]) K
+( ) p
+([) K
+(Empty, Empty) p
+(]) K n
+(      h = Node \(Point3d \(3.0,-1.7,3.1\)\) ) p
+([) K
+(1,2,3) p
+(]) K
+( ) p
+([) K
+(Empty,Empty, Empty, Empty,Empty,Empty, Empty, Empty) p
+(]) K n
+(      i = Node \(Point3d \(3.0,5.1,0.0\)\) ) p
+([) K
+(2) p
+(]) K
+( ) p
+([) K
+(Empty,Empty) p
+(]) K n
+(    ) p
+(in) K
+( Node \(Point3d \(3.0,-1.0,2.1\)\) ) p
+([) K
+(1,3) p
+(]) K
+( ) p
+([) K
+(i,h,g,f) p
+(]) K n
+() p n
+(testbuild :: [\(Point3d,[Int]\)]) C n
+(testbuild =) p n
+(  ) S
+(let) K
+( a = ) p
+([) K
+(\(Point3d \(3.0,-1.0,2.1\),) p
+([) K
+(1,3) p
+(]) K
+(\), \(Point3d \(3.5,2.8,3.1\),) p
+([) K
+(1,2) p
+(]) K
+(\), \(Point3d \(3.5,0.0,2.1\),) p
+([) K
+(3) p
+(]) K
+(\)) p
+(]) K n
+(      b = ) p
+([) K
+(\(Point3d \(3.0,-1.7,3.1\),) p
+([) K
+(1,2,3) p
+(]) K
+(\), \(Point3d \(3.0,5.1,0.0\),) p
+([) K
+(2) p
+(]) K
+(\), \(Point3d \(1.5,8.0,1.5\),) p
+([) K
+(1) p
+(]) K
+(\)) p
+(]) K n
+(      c = ) p
+([) K
+(\(Point3d \(3.3,2.8,2.5\),) p
+([) K
+(3) p
+(]) K
+(\), \(Point3d \(4.0,5.1,3.8\),) p
+([) K
+(2) p
+(]) K
+(\), \(Point3d \(3.1,3.8,4.8\),) p
+([) K
+(1,3) p
+(]) K
+(\), \(Point3d \(1.8,1.1,-2.0\),) p
+([) K
+(1,2) p
+(]) K
+(\)) p
+(]) K n
+(    ) p
+(in) K
+( a++b++c) p n
+() N
+(testbuild1 :: [\(Point3d,[Int]\)]) C n
+(testbuild1 = ) p
+([) K
+(\(Point3d \(3.0,-1.0,2.1\),) p
+([) K
+(1,3) p
+(]) K
+(\), \(Point3d \(3.5,2.8,3.1\),) p
+([) K
+(1,2) p
+(]) K
+(\), \(Point3d \(3.5,0.0,2.1\),) p
+([) K
+(3) p
+(]) K
+(\)) p
+(]) K n
+() p n
+(testbuildini :: [\([Double],[Int]\)]) C n
+(testbuildini =) p n
+(  ) S
+(let) K
+( a = ) p
+([) K
+(\() p
+([) K
+(3.0,-1.0,2.1) p
+(]) K
+(,) p
+([) K
+(1,3) p
+(]) K
+(\), \() p
+([) K
+(3.5,2.8,3.1) p
+(]) K
+(,) p
+([) K
+(1,2) p
+(]) K
+(\), \() p
+([) K
+(3.5,0.0,2.1) p
+(]) K
+(,) p
+([) K
+(3) p
+(]) K
+(\)) p
+(]) K n
+(      b = ) p
+([) K
+(\() p
+([) K
+(3.0,-1.7,3.1) p
+(]) K
+(,) p
+([) K
+(1,2,3) p
+(]) K
+(\), \() p
+([) K
+(3.0,5.1,0.0) p
+(]) K
+(,) p
+([) K
+(2) p
+(]) K
+(\), \() p
+([) K
+(1.5,8.0,1.5) p
+(]) K
+(,) p
+([) K
+(1) p
+(]) K
+(\)) p
+(]) K n
+(      c = ) p
+([) K
+(\() p
+([) K
+(3.3,2.8,2.5) p
+(]) K
+(,) p
+([) K
+(3) p
+(]) K
+(\), \() p
+([) K
+(4.0,5.1,3.8) p
+(]) K
+(,) p
+([) K
+(2) p
+(]) K
+(\), \() p
+([) K
+(3.1,3.8,4.8) p
+(]) K
+(,) p
+([) K
+(1,3) p
+(]) K
+(\), \() p
+([) K
+(1.8,1.1,-2.0) p
+(]) K
+(,) p
+([) K
+(1,2) p
+(]) K
+(\)) p
+(]) K n
+(    ) p
+(in) K
+( a++b++c) p n
+() N
+(testbuildini1 :: [\([Double],[Int]\)]) C n
+(testbuildini1 = ) p
+([) K
+(\() p
+([) K
+(3.0,-1.0,2.1) p
+(]) K
+(,) p
+([) K
+(1,3) p
+(]) K
+(\), \() p
+([) K
+(3.5,2.8,3.1) p
+(]) K
+(,) p
+([) K
+(1,2) p
+(]) K
+(\), \() p
+([) K
+(3.5,0.0,2.1) p
+(]) K
+(,) p
+([) K
+(3) p
+(]) K
+(\)) p
+(]) K n
+() p n
+(tree = build testbuild) N
+() N
+(-------------------------------------------------------------------------------------------) c n
+() p n
 (class) K
 ( Point p ) p
 (where) K n
@@ -837,7 +1183,24 @@ x0 y0 moveto
 (  child _ _ ) S
 ([]) K
 ( = 0;) p n
-(  child q@\(Point3d \(a,b,c\)\) w@\(Point3d \(d,e,f\)\) l@\(x) S
+grestore
+(titol) rhead
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (2) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 0 add translate
+/v 0 store
+/x0 x v get 3.360000 add sx cw mul add store
+/y0 y v get bfs  sub store
+x0 y0 moveto
+(  child q@\(Point3d \(a,b,c\)\) w@\(Point3d \(d,e,f\)\) l@\(x) p
 (:) K
 (xs\)) p n
 (    | \(sel x q\) > \(sel x w\) = 2^\(\(length l\)-1\) + child q w xs) N
@@ -886,22 +1249,14 @@ x0 y0 moveto
 ( | Empty) p n
 () N
 (instance) K
-( \(Eq a, Point a\) => Eq \(Kd2nTree a\) ) p
+( Eq a => Eq \(Kd2nTree a\) ) p
 (where) K n
 (  Empty == Empty = True) p n
 (  Empty == _     = False) N
 (  _     == Empty = False) N
-(  q == w = \(containsAll q w\) && \(containsAll w q\)) N
-() N
-(containsAll :: \(Point p, Eq p\) => Kd2nTree p -> Kd2nTree p -> Bool) C n
-(containsAll \(Node q w e\) x = foldr \(\\a b) p
-(->) K
-( \(containsAll a x\) && b\) \(contains x q\) \(filter \(\\x ) p
-(->) K
-( x /= Empty\) e\)) p n
-() N
-() N
-() N
+(  \(Node q w e\) == \(Node a s d\) = q==a && w==s && e==d ) S
+(--TODO: Check if the comparision between list of custom data works) c n
+() p n
 () N
 (showFills :: \(Show p\) => String -> Int -> [Kd2nTree p] -> String) C n
 (showFills _ pos ) p
@@ -957,23 +1312,6 @@ x0 y0 moveto
 (instance) K
 ( \(Show p\) => Show \(Kd2nTree p\) ) p
 (where) K n
-grestore
-(titol) rhead
-end % of iso1dict
-pagesave restore
-showpage
-%%Page: (2) 2
-%%BeginPageSetup
-/pagesave save def
-sh 0 translate 90 rotate
-%%EndPageSetup
-iso1dict begin
-gsave
-llx lly 0 add translate
-/v 0 store
-/x0 x v get 3.360000 add sx cw mul add store
-/y0 y v get bfs  sub store
-x0 y0 moveto
 (  show Empty = show "") p n
 (  show \(Node a w list\) = show a ++ ") S
 ( ) str
@@ -1020,6 +1358,23 @@ x0 y0 moveto
 (]) K n
 () p n
 (get_all :: \(Point p\) => Kd2nTree p -> [\([Double],[Int]\)]) C n
+grestore
+(titol) rhead
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 0 add translate
+/v 0 store
+/x0 x v get 3.360000 add sx cw mul add store
+/y0 y v get bfs  sub store
+x0 y0 moveto
 (get_all Empty = ) p
 ([]) K n
 (get_all \(Node a comp xs\) = \(point2Double a \(dim a\),comp\) ) p
@@ -1069,6 +1424,15 @@ x0 y0 moveto
 (  | \(dist po pa\) < \(dist po pb\) = pa) N
 (  | otherwise = pb) N
 () N
+({-) c n
+(nearestAux :: \(Point p\) => Kd2nTree p -> p -> p -> p) N
+(nearestAux Empty aux orig = aux) N
+(nearestAux \(Node a comp fills\) aux orig = foldr \(\\x b -> minp orig b \(nearestAux x a orig\)\) a fills) N
+() N
+(nearest :: \(Point p\) => Kd2nTree p -> p -> p) N
+(nearest x@\(Node a comp fills\) p = nearestAux x a p) N
+(-}) N
+() p n
 (nearest :: \(Point p, Eq p\) => Kd2nTree p -> p -> p) C n
 (nearest x@\(Node a comp fills\) p = foldr \(\\x b ) p
 (->) K
@@ -1077,7 +1441,8 @@ x0 y0 moveto
 ( x /= Empty\) fills\)) p n
 () N
 (-------------------------------------------------------------------------------------------) c n
-({-) N
+() p n
+({-) c n
 (minFills :: \(Point p\) => p -> p -> p -> Int -> [Int]) N
 (minFills p1 p2 pc comps) N
 (  | all \(\\\(x,y,z\) -> x <= y && y <= z\) \(zip3 pd1 pdc pd2\) = [0..comps]) N
@@ -1085,24 +1450,7 @@ x0 y0 moveto
 (  | otherwise = [comps]) N
 (  where pd1 = point2Double p1 \(dim p1\)) N
 (        pd2 = point2Double p2 \(dim p2\)) N
-grestore
-(titol) rhead
-end % of iso1dict
-pagesave restore
-showpage
-%%Page: (3) 3
-%%BeginPageSetup
-/pagesave save def
-sh 0 translate 90 rotate
-%%EndPageSetup
-iso1dict begin
-gsave
-llx lly 0 add translate
-/v 0 store
-/x0 x v get 3.360000 add sx cw mul add store
-/y0 y v get bfs  sub store
-x0 y0 moveto
-(        pdc = point2Double pc \(dim pc\)) c n
+(        pdc = point2Double pc \(dim pc\)) N
 () N
 (allInterval :: \(Point p\) => Kd2nTree p -> p -> p -> [p]) N
 (allInterval Empty _ _ = []) N
@@ -1129,10 +1477,27 @@ x0 y0 moveto
 ( \(allInterval q p1 p2\) ++ b\) ) p
 ([]) K
 ( list) p n
-() N
+grestore
+(titol) rhead
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (4) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 0 add translate
+/v 0 store
+/x0 x v get 3.360000 add sx cw mul add store
+/y0 y v get bfs  sub store
+x0 y0 moveto
+() p n
 () N
 (-------------------------------------------------------------------------------------------) c n
-() p n
+(--foldr :: \(a -> b -> b\) -> b -> [a] -> b) N
 (kdmap :: \(p -> q\) -> Kd2nTree p -> Kd2nTree q) C n
 (kdmap _ Empty = Empty) p n
 (kdmap f \(Node a w list\) = Node \(f a\) w \(foldr \(\\x b ) S
