@@ -82,6 +82,12 @@ getNextB "d" [f,c] = [(read f :: Int)*2-1,(read c :: Int)-1]
 getNextB "l" [f,c] = [(((read f :: Int)-1)*2),(read c :: Int)-1]
 getNextB "r" [f,c] = [(((read f :: Int)-1)*2),(read c :: Int)]
 
+getNextR :: String -> [String] -> [Int]
+getNextR "u" [f,c] = [((read f :: Int)-1)*2,(read c :: Int)-1]
+getNextR "d" [f,c] = [(read f :: Int)*2,(read c :: Int)-1]
+getNextR "l" [f,c] = [((read f :: Int)*2)-1,(read c :: Int)-2]
+getNextR "r" [f,c] = [((read f :: Int)*2)-1,(read c :: Int)-1]
+
 
 playBlue :: Bridgit -> IO()
 playBlue x = do
@@ -92,10 +98,24 @@ playBlue x = do
   dir <- getLine
   --putStrLn (show $ getNextB dir (splitOn " " move))
 
-
-
   --TODO: check that the movements are legal
   let newx = setMovement 1 (getNextB dir (splitOn " " move)) x
+  putStrLn (show newx)
+
+  playRed newx
+
+
+playRed :: Bridgit -> IO()
+playRed x = do
+  putStrLn (red "***Red player turn***")
+  putStrLn "From:"
+  move <- getLine
+  putStrLn "Direction (u,d,l,r):"
+  dir <- getLine
+  --putStrLn (show $ getNextB dir (splitOn " " move))
+
+  --TODO: check that the movements are legal
+  let newx = setMovement 2 (getNextR dir (splitOn " " move)) x
   putStrLn (show newx)
 
   playBlue newx
