@@ -18,11 +18,11 @@ red :: String -> String
 red a = "\x1b[31m" ++ a ++ "\x1b[0m"
 
 showBlueRow :: [[Int]] -> String
-showBlueRow [] = "\n"
+showBlueRow [] = ""
 showBlueRow (x:xs) = (showDots 1 x) ++ (showRedRow xs)
 
 showRedRow :: [[Int]] -> String
-showRedRow [] = "\n"
+showRedRow [] = ""
 showRedRow (x:xs) = (showDots 2 x) ++ (showBlueRow xs)
 
 showDots :: Int -> [Int] -> String
@@ -61,16 +61,14 @@ create f c = Board $ map (\x -> take x  [0,0..0]) path
 
 
 
-
-
 ----Set the movements-------------------------------------------------------------------------------------
-setCol :: Int -> [Bool] -> [Bool]
-setCol col submap = a ++ [True] ++ (tail b)
-  where (a,b) = splitAt (col-1) submap
+setCol :: Int -> Int -> [Int] -> [Int]
+setCol player col submap = a ++ [player] ++ (tail b)
+  where (a,b) = splitAt col submap
 
-setMovement :: [Int] -> [[Bool]] -> [[Bool]]
-setMovement [fil,col] mapa = a ++ [setCol col (head b)] ++ (tail b)
-  where (a,b) = splitAt (fil-1) mapa
+setMovement :: Int -> [Int] -> Bridgit -> Bridgit
+setMovement player [fil,col] (Board mapa) = Board (a ++ [setCol player col (head b)] ++ (tail b))
+  where (a,b) = splitAt fil mapa
 
 -----------------------------------------------------------------------------------------------------------
 
@@ -78,39 +76,38 @@ setMovement [fil,col] mapa = a ++ [setCol col (head b)] ++ (tail b)
 
 
 ----Logic of the game--------------------------------------------------------------------------------------
-getNext :: String -> [String] -> [Int]
-getNext "u" [f,c] = [((read f :: Int)-1)*2,(read c :: Int)]
-getNext "d" [f,c] = [((read f :: Int)*2),(read c :: Int)]
-getNext "l" [f,c] = [((read f :: Int)*2)-1,(read c :: Int)-1]
-getNext "r" [f,c] = [((read f :: Int)*2)-1,(read c :: Int)]
-
-------------------------------------------------------------------------------------------------------------
+getNextB :: String -> [String] -> [Int]
+getNextB "u" [f,c] = [((read f :: Int)-1)*2-1,(read c :: Int)-1]
+getNextB "d" [f,c] = [(read f :: Int)*2-1,(read c :: Int)-1]
+getNextB "l" [f,c] = [(((read f :: Int)-1)*2),(read c :: Int)-1]
+getNextB "r" [f,c] = [(((read f :: Int)-1)*2),(read c :: Int)]
 
 
-test = putStrLn ("\x1b[34m" ++ "·-·" ++ "\x1b[0m")
-test1 = putStrLn ("\x1b[34m" ++ "· ·" ++ "\x1b[0m")
-
-
-
-
-{-
-playBlue :: [[Bool]] -> [[Bool]] -> IO()
-playBlue x y = do
-  putStrLn "***Blue player turn***"
+playBlue :: Bridgit -> IO()
+playBlue x = do
+  putStrLn (blue "***Blue player turn***")
   putStrLn "From:"
   move <- getLine
   putStrLn "Direction (u,d,l,r):"
   dir <- getLine
-  putStrLn (show $ getNext dir (splitOn " " move))
+  --putStrLn (show $ getNextB dir (splitOn " " move))
+
+
 
   --TODO: check that the movements are legal
-  let newx = setMovement (getNext dir (splitOn " " move)) x
+  let newx = setMovement 1 (getNextB dir (splitOn " " move)) x
   putStrLn (show newx)
 
+  playBlue newx
 
-  putStrLn "The winner is the blue player"
 
--}
+------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
 
 
 
@@ -127,7 +124,7 @@ main = do
   let [x,y] = [(read rows :: Int),(read columns :: Int)]
   let board = create (max x y) (min x y)
 
-  --playBlue board
+  playBlue board
 
 
 
