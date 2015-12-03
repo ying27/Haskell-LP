@@ -1,11 +1,12 @@
 import System.Environment
 import Data.List.Split
+import System.Random
 
 x :: Bridgit
 x = Board [[0,0,0],[1,0],[0,0,0],[1,0],[0,0,0]]
 
 y :: Bridgit
-y = Board [[0,0,0],[2,2],[0,0,0],[0,0],[0,0,0]]
+y = Board [[0,0,0],[2,2],[2,1,2],[0,0],[0,0,0]]
 
 
 ----Define the data board and it's show definition----------------------------------------------------------
@@ -51,8 +52,82 @@ showDots 2 ((2):xs) = (red " + ---") ++ (showDots 2 xs)
 
 
 
+----IA 1------------------------------------------------------------------------------------------------
+--           player   f      c   colum list
+exploreCol :: Int -> Double -> Double -> [Int] -> ([(Double,Double)],[(Double,Double)])
+exploreCol player _ _ [] = ([],[])
+exploreCol player f c l@(x:xs)
+    | x == 0 = ((f,c):emp,ocu)
+    | x  == player = (emp,(f,c):ocu)
+    | otherwise = (emp,ocu)
+    where (emp,ocu) = exploreCol player f (c+1) xs
 
-----To create the board and it's attributes--------------------------------------------------------------
+exploreRow :: Int -> Int -> [[Int]] -> ([(Double,Double)],[(Double,Double)])
+exploreRow _ _ [] = ([],[])
+exploreRow player f (x:xs)
+    | even f = (e++r,c++t)
+    | otherwise = (ee++r,cc++t)
+    where (e,c) = (exploreCol player (fromIntegral f) 0 x)
+          (ee,cc) = (exploreCol player (fromIntegral f) 0.5 x)
+          (r,t) = exploreRow player (f+1) xs
+
+dist :: (Double,Double) -> (Double,Double) -> Double
+dist (x,y) (q,w) = ret*ret*ret
+    where ret = sqrt ((x-q)*(x-q) + (y-w)*(y-w))
+getMinDist :: [(Double,Double)] -> (Double,Double) -> [Double]
+getMinDist x po@(i,j) = [(foldr (\a b -> dist po a + b) 0 x),i,j]
+
+cpu0 :: Bridgit -> Int -> [Int]
+cpu0 (Board a) player = do
+    let (empty,filled) = exploreRow player 0 a
+    let (x:xs) = map (getMinDist filled) empty
+    let [i,j,k] = foldr (\a b -> min a b) x xs
+    [truncate j, truncate k]
+
+--------------------------------------------------------------------------------------------------------
+
+---Random-----------------------------------------------------------------------------------------------
+randRow :: Bridgit -> IO Int
+randRow a =  randomRIO(0, getHeight a)
+
+randOddCol :: Bridgit -> IO Int
+randOddCol a =  randomRIO(0, getOddWidth a)
+
+randEvenCol :: Bridgit -> IO Int
+randEvenCol a =  randomRIO(0, getEvenWidth a)
+
+rand :: Bridgit -> Int
+rand a = do
+    f <- randRow a :: IO Int
+    let ret = (id f)
+    ret
+
+
+{-
+    do f <-
+    (id f)
+    --  [(id f)]
+
+   if k then
+        [0,0]
+        --g <- randomRIO (0, getEvenWidth a)
+    else
+        --g <- randomRIO (0, getOddWidth a)
+        [0,0]
+    --if testBoard [f,g] a then
+--        [f,g]
+--        else random a
+-}
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------
+
+
+
+----To create the board and it's attributes-------------------------------------------------------------
 getPath :: Int -> [Int]
 getPath col = col : (col-1) : getPath col
 
@@ -131,8 +206,6 @@ checkBEvenRow m@[f,c] b@(Board mapa)
     | (getHeight b) <= (f+1) = True
     | (testBoard m b) == 1 = (checkBOddRow [f+1,c-1] b) || (checkBOddRow [f+1,c] b) || (checkBEvenRow [f+2,c] b)
     | otherwise = False
-
-
 -----------------------------------------------------------------------------------------------------------
 
 
@@ -148,55 +221,52 @@ checkREvenRow m@[f,c] b@(Board mapa)
     | (getOddWidth b) <= (c) = True
     | (testBoard m b) == 2 = (checkROddRow [f-1,c] b) || (checkREvenRow [f,c+1] b) || (checkROddRow [f+1,c] b)
     | otherwise = False
-
 -----------------------------------------------------------------------------------------------------------
 
 
+readPlayerMove :: Bridgit -> Int -> IO [Int]
+readPlayerMove x player = do
+    putStrLn "From:"
+    move <- getLine--
+    putStrLn "Direction (u,d,l,r):"
+    dir <- getLine
+    --putStrLn (show $ getNextB dir (splitOn " " move))
+    return (getNextS player dir (splitOn " " move))
 
 
-playBlue :: Bridgit -> IO()
-playBlue x = do
+playBlue :: Bridgit -> Int -> IO()
+playBlue x mode = do
   putStrLn (blue "***Blue player turn***")
-  putStrLn "From:"
-  move <- getLine--
-  putStrLn "Direction (u,d,l,r):"
-  dir <- getLine
-  --putStrLn (show $ getNextB dir (splitOn " " move))
-  let nxtmove = getNextS 1 dir (splitOn " " move)
-
+  nxtmove <- readPlayerMove x 1
   if (testBoard nxtmove x) == 0 then do
         let newx = setMovement 1 nxtmove x
         putStrLn (show newx)
         let go = foldr (\a b-> (checkBOddRow [1,a] newx) || b) False (take (getOddWidth x) [0,1..])
         if go == False then
-            playRed newx
+            playRed newx mode
         else putStrLn (yellow "PLAYER BLUE WINS!!")
   else do
       putStrLn (yellow "ILLEGAL MOVE!!")
-      playBlue x
+      playBlue x mode
 
 
 
-playRed :: Bridgit -> IO()
-playRed x = do
+playRed :: Bridgit -> Int -> IO()
+playRed x mode = do
   putStrLn (red "***Red player turn***")
-  putStrLn "From:"
-  move <- getLine
-  putStrLn "Direction (u,d,l,r):"
-  dir <- getLine
-
-  let nxtmove = getNextS 2 dir (splitOn " " move)
+  --nxtmove <- readPlayerMove x 2
+  let nxtmove = cpu0 x 1
 
   if (testBoard nxtmove x) == 0 then do
     let newx = setMovement 2 nxtmove x
     putStrLn (show newx)
     let go = foldr (\a b-> (checkROddRow [a,0] newx) || b) False (take (getOddWidth x) [1,3..])
     if go == False then
-        playBlue newx
+        playBlue newx mode
     else putStrLn (yellow "PLAYER RED WINS!!")
   else do
     putStrLn (yellow "ILLEGAL MOVE!!")
-    playRed x
+    playRed x mode
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -221,7 +291,7 @@ main = do
   let [x,y] = [(read rows :: Int),(read columns :: Int)]
   let board = create (max x y) (min x y)
 
-  playBlue board
+  playBlue board 0
 
 
 
