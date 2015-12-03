@@ -1,8 +1,8 @@
 import System.Environment
 import Data.List.Split
 
-x :: [[Int]]
-x = [[0,0,0],[2,1],[2,2,2],[0,0],[0,0,0]]
+x :: Bridgit
+x = Board [[0,0,0],[1,0],[0,0,0],[1,0],[0,0,0]]
 
 
 ----Define the data board and it's show definition----------------------------------------------------------
@@ -16,6 +16,9 @@ blue a = "\x1b[34m" ++ a ++ "\x1b[0m"
 
 red :: String -> String
 red a = "\x1b[31m" ++ a ++ "\x1b[0m"
+
+yellow :: String -> String
+yellow a = "\x1b[33m" ++ a ++ "\x1b[0m"
 
 showBlueRow :: [[Int]] -> String
 showBlueRow [] = ""
@@ -46,15 +49,22 @@ showDots 2 ((2):xs) = (red " + ---") ++ (showDots 2 xs)
 
 
 
-----To create the board---------------------------------------------------------------------------------
+----To create the board and it's attributes--------------------------------------------------------------
 getPath :: Int -> [Int]
 getPath col = col : (col-1) : getPath col
 
---let (blue,red) = create 4 3
---files -> columnes del jugador blau
 create :: Int -> Int -> Bridgit
 create f c = Board $ map (\x -> take x  [0,0..0]) path
     where path = take (f+c) $ getPath f
+
+getHeight :: Bridgit -> Int
+getHeight (Board a) = length a
+
+getEvenWidth :: Bridgit -> Int
+getEvenWidth (Board a) = length (head a)
+
+getOddWidth :: Bridgit -> Int
+getOddWidth (Board (x:xs)) = length (head xs)
 ---------------------------------------------------------------------------------------------------------
 
 
@@ -75,34 +85,77 @@ setMovement player [fil,col] (Board mapa) = Board (a ++ [setCol player col (head
 
 
 
-----Logic of the game--------------------------------------------------------------------------------------
-getNextB :: String -> [String] -> [Int]
-getNextB "u" [f,c] = [((read f :: Int)-1)*2-1,(read c :: Int)-1]
-getNextB "d" [f,c] = [(read f :: Int)*2-1,(read c :: Int)-1]
-getNextB "l" [f,c] = [(((read f :: Int)-1)*2),(read c :: Int)-1]
-getNextB "r" [f,c] = [(((read f :: Int)-1)*2),(read c :: Int)]
+----Logic of the board--------------------------------------------------------------------------------------
+getNextS :: Int -> String -> [String] -> [Int]
+getNextS 1 dir [f,c] = getNextB dir [(read f :: Int),(read c :: Int)]
+getNextS 2 dir [f,c] = getNextR dir [(read f :: Int),(read c :: Int)]
 
-getNextR :: String -> [String] -> [Int]
-getNextR "u" [f,c] = [((read f :: Int)-1)*2,(read c :: Int)-1]
-getNextR "d" [f,c] = [(read f :: Int)*2,(read c :: Int)-1]
-getNextR "l" [f,c] = [((read f :: Int)*2)-1,(read c :: Int)-2]
-getNextR "r" [f,c] = [((read f :: Int)*2)-1,(read c :: Int)-1]
+getNext :: Int -> String -> [Int] -> [Int]
+getNext 1 dir [f,c] = getNextB dir [f,c]
+getNext 2 dir [f,c] = getNextR dir [f,c]
+
+getNextB :: String -> [Int] -> [Int]
+getNextB "u" [f,c] = [(f-1)*2-1,c-1]
+getNextB "d" [f,c] = [f*2-1,c-1]
+getNextB "l" [f,c] = [((f-1)*2),c-1]
+getNextB "r" [f,c] = [((f-1)*2),c]
+
+getNextR :: String -> [Int] -> [Int]
+getNextR "u" [f,c] = [(f-1)*2,c-1]
+getNextR "d" [f,c] = [f*2,c-1]
+getNextR "l" [f,c] = [(f*2)-1,c-2]
+getNextR "r" [f,c] = [(f*2)-1,c-1]
+
+testBoard :: [Int] -> Bridgit -> Int
+testBoard [fil,col] (Board mapa)
+    | b == [] = -1
+    | d == [] = -1
+    | otherwise = head d
+    where (a,b) = splitAt fil mapa
+          (c,d) = splitAt col $ head b
+
+-----------------------------------------------------------------------------------------------------------
+
+-----Blue Player game over check---------------------------------------------------------------------------
+checkGameOverOddRow :: [Int] -> Bridgit -> Bool
+checkGameOverOddRow m@[f,c] b@(Board mapa)
+  | (getHeight b) <= (f+1) = True
+  | (testBoard m b) == 1 = (checkGameOverEvenRow [f+1,c] b) || (checkGameOverEvenRow [f+1,c+1] b) || (checkGameOverOddRow [f+2,c] b)
+  | otherwise = False
+
+checkGameOverEvenRow :: [Int] -> Bridgit -> Bool
+checkGameOverEvenRow m@[f,c] b@(Board mapa)
+    | (getHeight b) <= (f+1) = True
+    | (testBoard m b) == 1 = (checkGameOverOddRow [f+1,c-1] b) || (checkGameOverOddRow [f+1,c] b) || (checkGameOverEvenRow [f+2,c] b)
+    | otherwise = False
+
+
+-----------------------------------------------------------------------------------------------------------
+
+
 
 
 playBlue :: Bridgit -> IO()
 playBlue x = do
   putStrLn (blue "***Blue player turn***")
   putStrLn "From:"
-  move <- getLine
+  move <- getLine--
   putStrLn "Direction (u,d,l,r):"
   dir <- getLine
   --putStrLn (show $ getNextB dir (splitOn " " move))
+  let nxtmove = getNextS 1 dir (splitOn " " move)
 
-  --TODO: check that the movements are legal
-  let newx = setMovement 1 (getNextB dir (splitOn " " move)) x
-  putStrLn (show newx)
+  if (testBoard nxtmove x) == 0 then do
+        let newx = setMovement 1 nxtmove x
+        putStrLn (show newx)
+        let go = foldr (\a b-> (checkGameOverOddRow [1,a] newx) || b) False (take (getOddWidth x) [0,1..])
+        if go == False then
+            playRed newx
+        else putStrLn (yellow "PLAYER BLUE WINS!!")
+  else do
+      putStrLn (yellow "ILLEGAL MOVE!!")
+      playBlue x
 
-  playRed newx
 
 
 playRed :: Bridgit -> IO()
@@ -112,14 +165,16 @@ playRed x = do
   move <- getLine
   putStrLn "Direction (u,d,l,r):"
   dir <- getLine
-  --putStrLn (show $ getNextB dir (splitOn " " move))
 
-  --TODO: check that the movements are legal
-  let newx = setMovement 2 (getNextR dir (splitOn " " move)) x
-  putStrLn (show newx)
+  let nxtmove = getNextS 2 dir (splitOn " " move)
 
-  playBlue newx
-
+  if (testBoard nxtmove x) == 0 then do
+    let newx = setMovement 2 nxtmove x
+    putStrLn (show newx)
+    playBlue newx
+  else do
+    putStrLn (yellow "ILLEGAL MOVE!!")
+    playRed x
 
 ------------------------------------------------------------------------------------------------------------
 
