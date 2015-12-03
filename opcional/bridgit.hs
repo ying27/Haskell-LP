@@ -4,6 +4,9 @@ import Data.List.Split
 x :: Bridgit
 x = Board [[0,0,0],[1,0],[0,0,0],[1,0],[0,0,0]]
 
+y :: Bridgit
+y = Board [[0,0,0],[2,2],[0,0,0],[0,0],[0,0,0]]
+
 
 ----Define the data board and it's show definition----------------------------------------------------------
 data Bridgit = Board [[Int]]
@@ -117,18 +120,34 @@ testBoard [fil,col] (Board mapa)
 -----------------------------------------------------------------------------------------------------------
 
 -----Blue Player game over check---------------------------------------------------------------------------
-checkGameOverOddRow :: [Int] -> Bridgit -> Bool
-checkGameOverOddRow m@[f,c] b@(Board mapa)
+checkBOddRow :: [Int] -> Bridgit -> Bool
+checkBOddRow m@[f,c] b@(Board mapa)
   | (getHeight b) <= (f+1) = True
-  | (testBoard m b) == 1 = (checkGameOverEvenRow [f+1,c] b) || (checkGameOverEvenRow [f+1,c+1] b) || (checkGameOverOddRow [f+2,c] b)
+  | (testBoard m b) == 1 = (checkBEvenRow [f+1,c] b) || (checkBEvenRow [f+1,c+1] b) || (checkBOddRow [f+2,c] b)
   | otherwise = False
 
-checkGameOverEvenRow :: [Int] -> Bridgit -> Bool
-checkGameOverEvenRow m@[f,c] b@(Board mapa)
+checkBEvenRow :: [Int] -> Bridgit -> Bool
+checkBEvenRow m@[f,c] b@(Board mapa)
     | (getHeight b) <= (f+1) = True
-    | (testBoard m b) == 1 = (checkGameOverOddRow [f+1,c-1] b) || (checkGameOverOddRow [f+1,c] b) || (checkGameOverEvenRow [f+2,c] b)
+    | (testBoard m b) == 1 = (checkBOddRow [f+1,c-1] b) || (checkBOddRow [f+1,c] b) || (checkBEvenRow [f+2,c] b)
     | otherwise = False
 
+
+-----------------------------------------------------------------------------------------------------------
+
+
+-----Red Player game over check----------------------------------------------------------------------------
+checkROddRow :: [Int] -> Bridgit -> Bool
+checkROddRow m@[f,c] b@(Board mapa)
+    | (getOddWidth b) <= (c) = True
+    | (testBoard m b) == 2 = (checkREvenRow [f-1,c+1] b) || (checkROddRow [f,c+1] b) || (checkREvenRow [f+1,c+1] b)
+    | otherwise = False
+
+checkREvenRow :: [Int] -> Bridgit -> Bool
+checkREvenRow m@[f,c] b@(Board mapa)
+    | (getOddWidth b) <= (c) = True
+    | (testBoard m b) == 2 = (checkROddRow [f-1,c] b) || (checkREvenRow [f,c+1] b) || (checkROddRow [f+1,c] b)
+    | otherwise = False
 
 -----------------------------------------------------------------------------------------------------------
 
@@ -148,7 +167,7 @@ playBlue x = do
   if (testBoard nxtmove x) == 0 then do
         let newx = setMovement 1 nxtmove x
         putStrLn (show newx)
-        let go = foldr (\a b-> (checkGameOverOddRow [1,a] newx) || b) False (take (getOddWidth x) [0,1..])
+        let go = foldr (\a b-> (checkBOddRow [1,a] newx) || b) False (take (getOddWidth x) [0,1..])
         if go == False then
             playRed newx
         else putStrLn (yellow "PLAYER BLUE WINS!!")
@@ -171,7 +190,10 @@ playRed x = do
   if (testBoard nxtmove x) == 0 then do
     let newx = setMovement 2 nxtmove x
     putStrLn (show newx)
-    playBlue newx
+    let go = foldr (\a b-> (checkROddRow [a,0] newx) || b) False (take (getOddWidth x) [1,3..])
+    if go == False then
+        playBlue newx
+    else putStrLn (yellow "PLAYER RED WINS!!")
   else do
     putStrLn (yellow "ILLEGAL MOVE!!")
     playRed x
