@@ -110,7 +110,7 @@ ia0 player b@(Board a) = do
     let final = (fromIntegral $ getOddWidth b) - 0.5
     --putStrLn $ show empty
     let (x:xs) = map (getPDist final player filled) empty
-    putStrLn $ show (x:xs)
+    --putStrLn $ show (x:xs)
     let [i,j,k] = foldr (\a b -> max a b) x xs
     return [truncate (2*j), truncate k]
 
@@ -121,6 +121,10 @@ ia0 player b@(Board a) = do
 
 ----IA 1------------------------------------------------------------------------------------------------
 
+getvs :: Int -> Int
+getvs 1 = 2
+getvs 2 = 1
+
 ia1sim :: Int -> Bridgit -> (Double,Double) -> Bool
 ia1sim player b (x,y) = testGO player newx
     where newx = setMovement player [truncate (2*x),truncate y] b
@@ -128,12 +132,19 @@ ia1sim player b (x,y) = testGO player newx
 ia1 :: Int -> Bridgit -> IO [Int]
 ia1 player b@(Board a) = do
     let (empty,filled) = exploreRow player 0 a
-    let govers = filter (ia1sim player b) empty
+    let me = filter (ia1sim (getvs player) b) empty
+    if me == [] then do
 
-    if govers == [] then do
-        ia0 player b
+        let govers = filter (ia1sim player b) empty
+
+        if govers == [] then do
+            ia0 player b
+        else do
+            let (x,y) = head govers
+            return [truncate (2*x),truncate y]
+
     else do
-        let (x,y) = head govers
+        let (x,y) = head me
         return [truncate (2*x),truncate y]
 --------------------------------------------------------------------------------------------------------
 
@@ -238,13 +249,17 @@ getNextR "d" [f,c] = [f*2,c-1]
 getNextR "l" [f,c] = [(f*2)-1,c-2]
 getNextR "r" [f,c] = [(f*2)-1,c-1]
 
+t1 [fil,col] [] = -5
+t1 [fil,col] b = t2 d
+    where (c,d) = splitAt col $ head b
+
+t2 [] = -5
+t2 a = head a
+
 testBoard :: [Int] -> Bridgit -> Int
-testBoard [fil,col] (Board mapa)
-    | b == [] = -1
-    | d == [] = -1
-    | otherwise = head d
+testBoard [fil,col] (Board mapa) = t1 [fil,col] b
     where (a,b) = splitAt fil mapa
-          (c,d) = splitAt col $ head b
+          --(c,d) = splitAt col $ head b
 
 -----------------------------------------------------------------------------------------------------------
 
@@ -301,7 +316,7 @@ playBlue x strb strr = do
   if t == 0 || t == (-1) then do
         let newx@(Board q) = setMovement 1 nxtmove x
         putStrLn (show newx)
-        putStrLn (show q)
+        --putStrLn (show q)
         let go = testGO 1 newx
         if go == False then
             playRed newx strb strr
@@ -323,7 +338,7 @@ playRed x strb strr = do
   if t == 0 || t == (-2) then do
     let newx@(Board q) = setMovement 2 nxtmove x
     putStrLn (show newx)
-    putStrLn (show q)
+    --putStrLn (show q)
     let go = testGO 2 newx
     if go == False then
         playBlue newx strb strr
@@ -355,7 +370,7 @@ gameMode board = do
     else do
         putStrLn "Please choose the CPU1 Strategy"
         putStrLn "[1] RANDOM"
-        putStrLn "[2] IA1"
+        putStrLn "[2] IA0"
         putStrLn "[3] IA1"
         str1 <- getLine
         if option == "2" then do
@@ -375,7 +390,7 @@ main = do
   columns <- getLine
   let x = read columns :: Int
   let board@(Board q) = create x (x-1)
-  putStrLn (show q)
+  --putStrLn (show q)
   putStrLn $ show board
 
   putStrLn "Each movement is defined by the row followed by a space and the column. Rows and columns starts at 1."
