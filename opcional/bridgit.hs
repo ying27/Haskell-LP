@@ -71,7 +71,7 @@ showDots 2 ((2):xs) = (red " + ---") ++ (showDots 2 xs)
 
 
 
-----IA 1------------------------------------------------------------------------------------------------
+----IA 0------------------------------------------------------------------------------------------------
 isInt :: RealFrac a => a -> Bool
 isInt x = x == fromInteger (round x)
 --           player    f         c    colum_list
@@ -92,24 +92,25 @@ exploreRow player f (x:xs)
           (ee,cc) = (exploreCol player f 0.5 x)
           (r,t) = exploreRow player (f+0.5) xs
 
-distIA :: Int -> (Double,Double) -> (Double,Double) -> Double
-distIA player (x,y) (q,w)
-    | player == 2 && x == q && ret == 1 = ret
-    | player == 1 && y == w && ret == 1 = ret
-    | player == 2 && x == q && ret == 0.5 = 0.5
-    | player == 1 && y == w && ret == 0.5 = 0.5
+distIA :: Double ->  Int -> (Double,Double) -> (Double,Double) -> Double
+distIA final player (x,y) (q,w)
+    | ret <= 1 && (getcomp player (x,y) == final || getcomp player (x,y) == 0.5) = ret*2
+    | player == 2 && (not $ isInt x) && x == q && ret == 1 = ret
+    | player == 1 && (not $ isInt y) && y == w && ret == 1 = ret
+    | ret == 0.5 = 0.75
     | otherwise = 0
     where ret = (x-q)*(x-q) + (y-w)*(y-w)
 
-getPDist :: Int -> [(Double,Double)] -> (Double,Double) -> [Double]
-getPDist player x po@(i,j) = [(foldr (\a b -> distIA player po a + b) 0 x),i,j]
+getPDist :: Double -> Int -> [(Double,Double)] -> (Double,Double) -> [Double]
+getPDist final player x po@(i,j) = [(foldr (\a b -> distIA final player po a + b) 0 x),i,j]
 
-cpu0 :: Int -> Bridgit -> IO [Int]
-cpu0 player (Board a) = do
+ia0 :: Int -> Bridgit -> IO [Int]
+ia0 player b@(Board a) = do
     let (empty,filled) = exploreRow player 0 a
+    let final = (fromIntegral $ getOddWidth b) - 0.5
     --putStrLn $ show empty
-    let (x:xs) = map (getPDist player filled) empty
-    --putStrLn $ show (x:xs)
+    let (x:xs) = map (getPDist final player filled) empty
+    putStrLn $ show (x:xs)
     let [i,j,k] = foldr (\a b -> max a b) x xs
     return [truncate (2*j), truncate k]
 
@@ -117,6 +118,24 @@ cpu0 player (Board a) = do
 
 
 
+
+----IA 1------------------------------------------------------------------------------------------------
+
+ia1sim :: Int -> Bridgit -> (Double,Double) -> Bool
+ia1sim player b (x,y) = testGO player newx
+    where newx = setMovement player [truncate (2*x),truncate y] b
+
+ia1 :: Int -> Bridgit -> IO [Int]
+ia1 player b@(Board a) = do
+    let (empty,filled) = exploreRow player 0 a
+    let govers = filter (ia1sim player b) empty
+
+    if govers == [] then do
+        ia0 player b
+    else do
+        let (x,y) = head govers
+        return [truncate (2*x),truncate y]
+--------------------------------------------------------------------------------------------------------
 
 
 
@@ -165,9 +184,10 @@ getPath :: Int -> [Int]
 getPath col = (col-1) : col : getPath col
 
 create :: Int -> Int -> Bridgit
-create f c = Board $ [cap] ++ (map (\x -> if even x then [-2]++(take (x-2) [0,0..0])++[-2] else take x [0,0..0]) path) ++ [cap]
+create f c = Board $ [cap] ++ (map (\x -> if petit /= x then [-2]++(take (x-2) [0,0..0])++[-2] else take x [0,0..0]) path) ++ [cap]
     where path = take (f+c-2) $ getPath f
           cap = take f ([(-1),(-1)..(-1)] :: [Int])
+          petit = min f c
 
 getHeight :: Bridgit -> Int
 getHeight (Board a) = length a
@@ -271,11 +291,11 @@ testGO player b@(Board a) = any (gorec b cua player filled) heads
 -----------------------------------------------------------------------------------------------------------
 
 
-playBlue :: Bridgit -> Int -> (Bridgit -> IO [Int]) -> IO()
-playBlue x mode cpu = do
+playBlue :: Bridgit -> (Bridgit -> IO [Int]) -> (Bridgit -> IO [Int]) -> IO()
+playBlue x strb strr = do
   putStrLn (blue "***Blue player turn***")
 
-  nxtmove <- readPlayerMove 1 x
+  nxtmove <- strb x
 
   let t = testBoard nxtmove x
   if t == 0 || t == (-1) then do
@@ -284,20 +304,20 @@ playBlue x mode cpu = do
         putStrLn (show q)
         let go = testGO 1 newx
         if go == False then
-            playRed newx mode cpu
+            playRed newx strb strr
         else putStrLn (yellow "PLAYER BLUE WINS!!")
   else do
       putStrLn (yellow "ILLEGAL MOVE!!")
-      playBlue x mode cpu
+      playBlue x strb strr
 
 
 
-playRed :: Bridgit -> Int -> (Bridgit -> IO [Int]) -> IO()
-playRed x@(Board a) mode cpu = do
+playRed :: Bridgit -> (Bridgit -> IO [Int]) -> (Bridgit -> IO [Int]) -> IO()
+playRed x strb strr = do
   putStrLn (red "***Red player turn***")
 
   --nxtmove <- readPlayerMove 2 x
-  nxtmove <- cpu x
+  nxtmove <- strr x
 
   let t = testBoard nxtmove x
   if t == 0 || t == (-2) then do
@@ -306,59 +326,66 @@ playRed x@(Board a) mode cpu = do
     putStrLn (show q)
     let go = testGO 2 newx
     if go == False then
-        playBlue newx mode cpu
+        playBlue newx strb strr
     else putStrLn (yellow "PLAYER RED WINS!!")
   else do
     putStrLn (yellow "ILLEGAL MOVE!!")
-    playRed x mode cpu
+    playRed x strb strr
 
 ------------------------------------------------------------------------------------------------------------
 
 
+getIA :: String -> Int -> (Bridgit -> IO [Int])
+getIA "1" _ = rand
+getIA "2" 1 = ia0 2
+getIA "2" 2 = ia0 1
+getIA "3" 1 = ia1 2
+getIA "3" 2 = ia1 1
 
 
-{-
+
 gameMode board = do
     putStrLn "SELECT GAME MODE:"
     putStrLn "[1] Player VS CPU"
     putStrLn "[2] CPU VS CPU"
     option <- getLine
-    if option /= "1" || option /= "2"
+    if (option /= "1" && option /= "2") then do
         putStrLn "Error. Game Mode not found. Please choose again:"
         gameMode board
-    else
+    else do
         putStrLn "Please choose the CPU1 Strategy"
         putStrLn "[1] RANDOM"
-        putStrLn "[2] CPU0"
+        putStrLn "[2] IA1"
+        putStrLn "[3] IA1"
         str1 <- getLine
-        if option == "2"
+        if option == "2" then do
             putStrLn "Please choose the CPU2 Strategy"
             putStrLn "[1] RANDOM"
-            putStrLn "[2] CPU0"
+            putStrLn "[2] IA0"
+            putStrLn "[3] IA1"
             str2 <- getLine
-        else
-            if strategy == "1"
-                playBlue board 1 rand
-            else
-                playBlue board 1 cpu0
+            playBlue board (getIA str1 1) (getIA str2 2)
+        else do
+            playBlue board (readPlayerMove 1) (getIA str1 2)
 
--}
 
 main = do
   putStrLn "Welcome to Bridg-it! First of all define the board size:"
   putStrLn "Define board size. Enter a number: "
   columns <- getLine
   let x = read columns :: Int
+  let board@(Board q) = create x (x-1)
+  putStrLn (show q)
+  putStrLn $ show board
+
   putStrLn "Each movement is defined by the row followed by a space and the column. Rows and columns starts at 1."
   putStrLn "Starting game..."
 
-  let board = create x (x-1)
-
-  --gameMode board
+  gameMode board
 
 
   --playBlue board 0 rand
-  playBlue board 0 (cpu0 1)
+  --playBlue board 0 (ia0 1)
 
 
   --putStrLn (show blue)
