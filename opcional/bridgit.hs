@@ -23,113 +23,6 @@ b = Board a
 cc = Board c
 
 
-testbgo x = testBOddRow [1,1] x
-
-testBOddRow :: [Int] -> Bridgit -> IO()
-testBOddRow m@[f,c] b@(Board mapa)
-  | (getHeight b) <= f = putStrLn $ show m
-  | (testBoard m b) == 1 = do putStrLn $ show m
-                              (testBEvenRow [f+1,c] b)
-                              (testBEvenRow [f+1,c+1] b)
-                              (testBOddRow [f+2,c] b)
-  | otherwise = putStrLn  $ " *"++show m++"* "
-
-testBEvenRow :: [Int] -> Bridgit -> IO()
-testBEvenRow m@[f,c] b@(Board mapa)
-    | (getHeight b) <= f = putStrLn $ ">"++(show m)++"<"
-    | (testBoard m b) == 1 = do putStrLn $ show m
-                                (testBOddRow [f,c-1] b)
-                                (testBOddRow [f,c+1] b)
-                                (testBOddRow [f+1,c-1] b)
-                                (testBOddRow [f+1,c] b)
-    | otherwise = putStrLn  $ " *"++show m++"* "
-
-
-
-
-{-
-testNeigh :: String -> (Double,Double) -> [(Double,Double)] -> Bool
-testNeigh "u" (x,y) list = elem (x-0.5,y-0.5) list || elem (x-0.5,y+0.5) list || elem (x-1,y) list
-testNeigh "d" (x,y) list = elem (x+0.5,y-0.5) list || elem (x+0.5,y+0.5) list || elem (x+1,y) list
-testNeigh "l" (x,y) list = elem (x,y-1) list || elem (x-0.5,y-0.5) list || elem (x+0.5,y-0.5) list
-testNeigh "r" (x,y) list = elem (x-0.5,y+0.5) list || elem (x,y+1) list || elem (x+0.5,y+0.5) list
-
-testGOAux :: Bridgit -> Int -> [(Double,Double)] -> (Double,Double) -> Bool
-testGOAux b 1 list p@(x,y)
-    | x == 0.5 = testNeigh "d" p list
-    | (x+0.5) == fromIntegral(getOddWidth b) = testNeigh "u" p list
-    | isInt x = testNeigh "l" p list && testNeigh "r" p list
-    | otherwise = testNeigh "u" p list && testNeigh "d" p list
-
-testGOAux b 2 list p@(x,y)
-    | y == 0.5 = testNeigh "r" p list
-    | (y+0.5) == fromIntegral(getOddWidth b) = testNeigh "l" p list
-    | isInt x = testNeigh "u" p list && testNeigh "d" p list
-    | otherwise = testNeigh "l" p list && testNeigh "r" p list
-
--}
-
-getcomp :: Int -> (Double,Double) -> Double
-getcomp 1 (x,y) = x
-getcomp 2 (x,y) = y
-
-{-
-testGO :: Int -> Bridgit -> Bool
-testGO player b@(Board a)
-    | start && end = foldr (\a b -> (any (\p -> (getcomp player p) == a) connex) && b) True (take (getOddWidth b) [0.5,1.5..])
-    | otherwise = False
-    where (empty,filled) = exploreRow player 0 a
-          start = any (\p -> (getcomp player p) == 0.5) filled
-          end = any (\p -> ((getcomp player p)+0.5) == fromIntegral(getOddWidth b)) filled
-          connex = filter (\a -> testGOAux b player filled a) filled
--}
-
-
-getNeigh :: String -> (Double,Double) -> [(Double,Double)]
-getNeigh "u" (x,y) = [(x-0.5,y-0.5),(x-0.5,y+0.5),(x-1,y)]
-getNeigh "d" (x,y) = [(x+0.5,y-0.5),(x+0.5,y+0.5),(x+1,y)]
-getNeigh "l" (x,y) = [(x,y-1),(x-0.5,y-0.5),(x+0.5,y-0.5)]
-getNeigh "r" (x,y) = [(x-0.5,y+0.5),(x,y+1),(x+0.5,y+0.5)]
-
-getGOAux :: Int -> (Double,Double) -> [(Double,Double)]
-getGOAux 1 p@(x,y)
-    | x == 0.5 = getNeigh "d" p
-    | isInt x = getNeigh "l" p ++ getNeigh "r" p
-    | otherwise = getNeigh "u" p ++ getNeigh "d" p
-
-getGOAux 2 p@(x,y)
-    | y == 0.5 = getNeigh "r" p
-    | isInt x = getNeigh "u" p ++ getNeigh "d" p
-    | otherwise = getNeigh "l" p ++ getNeigh "r" p
-
-
-extract :: (Eq a) => (a,a) -> [(a,a)] -> [(a,a)]
-extract p (x:xs)
-    | x == p = xs
-    | otherwise = x : extract p xs
-
-gorec :: Bridgit -> Double -> Int -> [(Double,Double)] -> (Double,Double) -> Bool
-gorec b cua player [] p = False
-gorec b cua player list p@(x,y)
-    | elem p list && (getcomp player p) == cua = True
-    | elem p list = foldr (\q w -> gorec b cua player (extract p list) q || w) False (getGOAux player p)
-    | otherwise = False
-
-testGO :: Int -> Bridgit -> Bool
-testGO player b@(Board a) = any (gorec b cua player filled) heads
-    where (empty,filled) = exploreRow player 0 a
-          cua = fromIntegral (getOddWidth b) - 0.5
-          heads = filter (\p -> (getcomp player p) == 0.5) filled
-
-
-
-
-
-
-
-
-
-
 ----Define the data board and it's show definition----------------------------------------------------------
 data Bridgit = Board [[Int]]
 
@@ -214,8 +107,9 @@ getPDist player x po@(i,j) = [(foldr (\a b -> distIA player po a + b) 0 x),i,j]
 cpu0 :: Int -> Bridgit -> IO [Int]
 cpu0 player (Board a) = do
     let (empty,filled) = exploreRow player 0 a
-    putStrLn $ show empty
+    --putStrLn $ show empty
     let (x:xs) = map (getPDist player filled) empty
+    --putStrLn $ show (x:xs)
     let [i,j,k] = foldr (\a b -> max a b) x xs
     return [truncate (2*j), truncate k]
 
@@ -334,43 +228,55 @@ testBoard [fil,col] (Board mapa)
 
 -----------------------------------------------------------------------------------------------------------
 
------Blue Player game over check---------------------------------------------------------------------------
-checkBOddRow :: [Int] -> Bridgit -> Bool
-checkBOddRow m@[f,c] b@(Board mapa)
-  | (getHeight b) <= (f+1) = True
-  | (testBoard m b) == 1 = (checkBEvenRow [f+1,c] b) || (checkBEvenRow [f+1,c+1] b) || (checkBOddRow [f+2,c] b)
-  | otherwise = False
+-----Game Over check---------------------------------------------------------------------------
+getcomp :: Int -> (Double,Double) -> Double
+getcomp 1 (x,y) = x
+getcomp 2 (x,y) = y
 
-checkBEvenRow :: [Int] -> Bridgit -> Bool
-checkBEvenRow m@[f,c] b@(Board mapa)
-    | (getHeight b) <= (f+1) = True
-    | (testBoard m b) == 1 = (checkBOddRow [f+1,c-1] b) || (checkBOddRow [f+1,c] b) || (checkBEvenRow [f+2,c] b)
+getNeigh :: String -> (Double,Double) -> [(Double,Double)]
+getNeigh "u" (x,y) = [(x-0.5,y-0.5),(x-0.5,y+0.5),(x-1,y)]
+getNeigh "d" (x,y) = [(x+0.5,y-0.5),(x+0.5,y+0.5),(x+1,y)]
+getNeigh "l" (x,y) = [(x,y-1),(x-0.5,y-0.5),(x+0.5,y-0.5)]
+getNeigh "r" (x,y) = [(x-0.5,y+0.5),(x,y+1),(x+0.5,y+0.5)]
+
+getGOAux :: Int -> (Double,Double) -> [(Double,Double)]
+getGOAux 1 p@(x,y)
+    | x == 0.5 = getNeigh "d" p
+    | isInt x = getNeigh "l" p ++ getNeigh "r" p
+    | otherwise = getNeigh "u" p ++ getNeigh "d" p
+
+getGOAux 2 p@(x,y)
+    | y == 0.5 = getNeigh "r" p
+    | isInt x = getNeigh "u" p ++ getNeigh "d" p
+    | otherwise = getNeigh "l" p ++ getNeigh "r" p
+
+
+extract :: (Eq a) => (a,a) -> [(a,a)] -> [(a,a)]
+extract p (x:xs)
+    | x == p = xs
+    | otherwise = x : extract p xs
+
+gorec :: Bridgit -> Double -> Int -> [(Double,Double)] -> (Double,Double) -> Bool
+gorec b cua player [] p = False
+gorec b cua player list p@(x,y)
+    | elem p list && (getcomp player p) == cua = True
+    | elem p list = foldr (\q w -> gorec b cua player (extract p list) q || w) False (getGOAux player p)
     | otherwise = False
------------------------------------------------------------------------------------------------------------
 
-
------Red Player game over check----------------------------------------------------------------------------
-checkROddRow :: [Int] -> Bridgit -> Bool
-checkROddRow m@[f,c] b@(Board mapa)
-    | (getOddWidth b) <= (c) = True
-    | (testBoard m b) == 2 = (checkREvenRow [f-1,c+1] b) || (checkROddRow [f,c+1] b) || (checkREvenRow [f+1,c+1] b)
-    | otherwise = False
-
-checkREvenRow :: [Int] -> Bridgit -> Bool
-checkREvenRow m@[f,c] b@(Board mapa)
-    | (getOddWidth b) <= (c) = True
-    | (testBoard m b) == 2 = (checkROddRow [f-1,c] nb) || (checkROddRow [f+1,c] nb) || (checkREvenRow [f-2,c] nb) || (checkREvenRow [f+2,c] nb)
-    | otherwise = False
-    where nb = setMovement 0 m b
+testGO :: Int -> Bridgit -> Bool
+testGO player b@(Board a) = any (gorec b cua player filled) heads
+    where (empty,filled) = exploreRow player 0 a
+          cua = fromIntegral (getOddWidth b) - 0.5
+          heads = filter (\p -> (getcomp player p) == 0.5) filled
 -----------------------------------------------------------------------------------------------------------
 
 
 playBlue :: Bridgit -> Int -> (Bridgit -> IO [Int]) -> IO()
 playBlue x mode cpu = do
   putStrLn (blue "***Blue player turn***")
-  --nxtmove <- readPlayerMove 1 x
-  --nxtmove <- cpu x
-  nxtmove <- rand x
+
+  nxtmove <- readPlayerMove 1 x
+
   let t = testBoard nxtmove x
   if t == 0 || t == (-1) then do
         let newx@(Board q) = setMovement 1 nxtmove x
@@ -392,8 +298,7 @@ playRed x@(Board a) mode cpu = do
 
   --nxtmove <- readPlayerMove 2 x
   nxtmove <- cpu x
-  putStrLn $ show nxtmove
-  nxtmove <- rand x
+
   let t = testBoard nxtmove x
   if t == 0 || t == (-2) then do
     let newx@(Board q) = setMovement 2 nxtmove x
@@ -412,21 +317,45 @@ playRed x@(Board a) mode cpu = do
 
 
 
+{-
+gameMode board = do
+    putStrLn "SELECT GAME MODE:"
+    putStrLn "[1] Player VS CPU"
+    putStrLn "[2] CPU VS CPU"
+    option <- getLine
+    if option /= "1" || option /= "2"
+        putStrLn "Error. Game Mode not found. Please choose again:"
+        gameMode board
+    else
+        putStrLn "Please choose the CPU1 Strategy"
+        putStrLn "[1] RANDOM"
+        putStrLn "[2] CPU0"
+        str1 <- getLine
+        if option == "2"
+            putStrLn "Please choose the CPU2 Strategy"
+            putStrLn "[1] RANDOM"
+            putStrLn "[2] CPU0"
+            str2 <- getLine
+        else
+            if strategy == "1"
+                playBlue board 1 rand
+            else
+                playBlue board 1 cpu0
 
-
-
-
+-}
 
 main = do
   putStrLn "Welcome to Bridg-it! First of all define the board size:"
-  --putStrLn "Define board: "
-  --columns <- getLine
-  let columns = "4"
+  putStrLn "Define board size. Enter a number: "
+  columns <- getLine
+  let x = read columns :: Int
   putStrLn "Each movement is defined by the row followed by a space and the column. Rows and columns starts at 1."
   putStrLn "Starting game..."
 
-  let x = (read columns :: Int)
   let board = create x (x-1)
+
+  --gameMode board
+
 
   --playBlue board 0 rand
   playBlue board 0 (cpu0 1)
