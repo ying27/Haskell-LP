@@ -151,6 +151,60 @@ ia1 player b@(Board a) = do
 
 
 
+----IA 2------------------------------------------------------------------------------------------------
+
+checkDiagonal :: Int -> (Double,Double) -> (Double,Double) -> Bool
+checkDiagonal evenWidth1 (x,y) (q,w)
+    | (not $ isInt x) && x == q && (abs(y-w)) == 1 && (max y w) == rel = True
+    | otherwise = False
+    where rel = fromIntegral(evenWidth1) - x
+
+checkQUp :: Int -> (Double,Double) -> (Double,Double) -> Bool
+checkQUp evenWidth1 (x,y) (q,w)
+    | x < q && not (isInt x) = y < (rel - x)
+    | x > q && not (isInt q) = w < (rel - q)
+    | otherwise = False
+    where rel = fromIntegral(evenWidth1) - 1
+
+checkQDown :: Int -> (Double,Double) -> (Double,Double) -> Bool
+checkQDown evenWidth1 (x,y) (q,w)
+    | x < q && isInt x = x > (rel-y)
+    | x > q && isInt q = q > (rel-w)
+    | otherwise = False
+    where rel = fromIntegral(evenWidth1) - 0.5
+
+checkAdjacent :: Int -> (Double,Double) -> (Double,Double) -> Bool
+checkAdjacent ew1 (x,y) (q,w)
+    | (x < q && y < w ||  x > q && y > w) && abs(x-q) == 0.5 && abs(y-w) == 0.5 = (checkQUp ew1 (x,y) (q,w) || checkQDown ew1 (x,y) (q,w))
+    | otherwise = False
+
+ia2 :: Int -> Bridgit -> IO [Int]
+ia2 player b@(Board a) = do
+    let (empty,filled) = exploreRow player 0 a
+    if filled == [] then do
+        return [getHeight b-2,0]
+    else do
+        let evenWidth = (getEvenWidth b) - 1
+        --filter (\a -> any (\b -> checkDiagonal evenWidth a b || checkAdjacent a b) filled) empty
+        let dmoves = filter (\a -> any (\b -> checkDiagonal evenWidth a b) filled) empty
+
+        if dmoves == [] then do
+            let admoves = filter (\a -> any (\b -> checkAdjacent evenWidth a b) filled) empty
+            if admoves == [] then do
+                ia1 player b
+            else do
+                let (x,y) = head admoves
+                putStrLn $ "Adjacents :" ++ show admoves
+                return [truncate (2*x),truncate y]
+        else do
+            let (x,y) = head dmoves
+            putStrLn $ "Diagonals: " ++ show dmoves
+            return [truncate (2*x),truncate y]
+
+
+--------------------------------------------------------------------------------------------------------
+
+
 
 
 
@@ -356,6 +410,8 @@ getIA "2" 1 = ia0 2
 getIA "2" 2 = ia0 1
 getIA "3" 1 = ia1 2
 getIA "3" 2 = ia1 1
+getIA "4" 1 = ia2 2
+getIA "4" 2 = ia2 1
 
 
 
@@ -372,16 +428,25 @@ gameMode board = do
         putStrLn "[1] RANDOM"
         putStrLn "[2] IA0"
         putStrLn "[3] IA1"
+        putStrLn "[4] IA2"
         str1 <- getLine
         if option == "2" then do
             putStrLn "Please choose the CPU2 Strategy"
             putStrLn "[1] RANDOM"
             putStrLn "[2] IA0"
             putStrLn "[3] IA1"
+            putStrLn "[4] IA2"
             str2 <- getLine
             playBlue board (getIA str1 1) (getIA str2 2)
         else do
-            playBlue board (readPlayerMove 1) (getIA str1 2)
+            putStrLn "Please choose who starts the game"
+            putStrLn $ blue "[1] Player"
+            putStrLn $ red "[2] CPU"
+            start <- getLine
+            if start == "1" then
+                playBlue board (readPlayerMove 1) (getIA str1 2)
+            else
+                playRed board (readPlayerMove 1) (getIA str1 2)
 
 
 main = do
