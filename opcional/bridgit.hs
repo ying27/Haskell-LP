@@ -23,6 +23,7 @@ b = Board a
 cc = Board c
 
 
+
 ----Define the data board and it's show definition----------------------------------------------------------
 data Bridgit = Board [[Int]]
 
@@ -120,7 +121,6 @@ ia0 player b@(Board a) = do
 
 
 ----IA 1------------------------------------------------------------------------------------------------
-
 getvs :: Int -> Int
 getvs 1 = 2
 getvs 2 = 1
@@ -152,56 +152,66 @@ ia1 player b@(Board a) = do
 
 
 ----IA 2------------------------------------------------------------------------------------------------
-
-checkDiagonal :: Int -> (Double,Double) -> (Double,Double) -> Bool
-checkDiagonal evenWidth1 (x,y) (q,w)
+checkDiagonal :: Int -> Int -> (Double,Double) -> (Double,Double) -> Bool
+checkDiagonal player ew1(xx,yy) (qq,ww)
     | (not $ isInt x) && x == q && (abs(y-w)) == 1 && (max y w) == rel = True
     | otherwise = False
-    where rel = fromIntegral(evenWidth1) - x
+    where rel = fromIntegral(ew1) - x
+          (x,y) = cha2b player ew1 (xx,yy)
+          (q,w) = cha2b player ew1 (qq,ww)
 
-checkQUp :: Int -> (Double,Double) -> (Double,Double) -> Bool
-checkQUp evenWidth1 (x,y) (q,w)
-    | x < q && not (isInt x) = y < (rel - x)
-    | x > q && not (isInt q) = w < (rel - q)
+cha2b :: Int -> Int -> (Double,Double) -> (Double,Double)
+cha2b 1 oddWidth (x,y) = ((fromIntegral oddWidth)-y,x)
+cha2b 2 oddWidth (x,y) = (x,y)
+
+checkQU :: Int -> Int -> (Double,Double) -> (Double,Double) -> Bool
+checkQU player evenWidth1 (xx,yy) (qq,ww)
+    | xx < qq && not (isInt xx) = yy < (rel - xx)
+    | xx > qq && not (isInt qq) = ww < (rel - qq)
     | otherwise = False
     where rel = fromIntegral(evenWidth1) - 1
 
-checkQDown :: Int -> (Double,Double) -> (Double,Double) -> Bool
-checkQDown evenWidth1 (x,y) (q,w)
-    | x < q && isInt x = x > (rel-y)
-    | x > q && isInt q = q > (rel-w)
-    | otherwise = False
-    where rel = fromIntegral(evenWidth1) - 0.5
+checkQD :: Int -> Int -> (Double,Double) -> (Double,Double) -> Bool
+checkQD player evenWidth1 (xx,yy) (qq,ww)
+  | xx < qq && isInt xx = xx > (rel-yy)
+  | xx > qq && isInt qq = qq > (rel-ww)
+  | otherwise = False
+  where rel = fromIntegral(evenWidth1) - 0.5
 
-checkAdjacent :: Int -> (Double,Double) -> (Double,Double) -> Bool
-checkAdjacent ew1 (x,y) (q,w)
-    | (x < q && y < w ||  x > q && y > w) && abs(x-q) == 0.5 && abs(y-w) == 0.5 = (checkQUp ew1 (x,y) (q,w) || checkQDown ew1 (x,y) (q,w))
+checkAdjacent :: Int -> Int -> (Double,Double) -> (Double,Double) -> Bool
+checkAdjacent player ew1 (xx,yy) (qq,ww)
+    | (x < q && y < w ||  x > q && y > w) && abs(x-q) == 0.5 && abs(y-w) == 0.5 = (checkQU player ew1 (x,y) (q,w) || checkQD player ew1 (x,y) (q,w))
     | otherwise = False
+    where (x,y) = cha2b player ew1 (xx,yy)
+          (q,w) = cha2b player ew1 (qq,ww)
+
 
 ia2 :: Int -> Bridgit -> IO [Int]
 ia2 player b@(Board a) = do
     let (empty,filled) = exploreRow player 0 a
     if filled == [] then do
-        return [getHeight b-2,0]
+        if player == 2 then do
+            return [getHeight b-2,0]
+        else do
+            return [1,0]
     else do
         let evenWidth = (getEvenWidth b) - 1
         --filter (\a -> any (\b -> checkDiagonal evenWidth a b || checkAdjacent a b) filled) empty
-        let dmoves = filter (\a -> any (\b -> checkDiagonal evenWidth a b) filled) empty
+        let dmoves = filter (\a -> any (\b -> checkDiagonal player evenWidth a b) filled) empty
 
         if dmoves == [] then do
-            let admoves = filter (\a -> any (\b -> checkAdjacent evenWidth a b) filled) empty
+            let admoves = filter (\a -> any (\b -> checkAdjacent player evenWidth a b) filled) empty
             if admoves == [] then do
+                --putStrLn $ "No movements found"
                 ia1 player b
             else do
                 let (x,y) = head admoves
-                putStrLn $ "Adjacents :" ++ show admoves
+                --putStrLn $ "Adjacents :" ++ show admoves
                 return [truncate (2*x),truncate y]
         else do
             let (x,y) = head dmoves
-            putStrLn $ "Diagonals: " ++ show dmoves
+            --putStrLn $ "Diagonals: " ++ show dmoves
             return [truncate (2*x),truncate y]
-
-
 --------------------------------------------------------------------------------------------------------
 
 
